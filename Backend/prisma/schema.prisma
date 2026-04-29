@@ -1,0 +1,82 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+enum Role {
+  ADMIN
+  OPERARIO
+}
+
+enum MovementType {
+  ENTRADA
+  SALIDA
+}
+
+model Usuario {
+  id        Int      @id @default(autoincrement())
+  username  String   @unique
+  email     String   @unique
+  password  String
+  nombre    String
+  rol       Role     @default(OPERARIO)
+  estado    String   @default("activo")
+  createdAt DateTime @default(now())
+  movements Movimiento[]
+}
+
+model Categoria {
+  id          Int        @id @default(autoincrement())
+  nombre      String     @unique
+  descripcion String?
+  color       String?
+  productos   Producto[]
+}
+
+model Proveedor {
+  id          Int          @id @default(autoincrement())
+  nombre      String       @unique
+  contacto    String?
+  telefono    String?
+  email       String?
+  productos   Producto[]
+  movements   Movimiento[]
+}
+
+model Producto {
+  id          Int          @id @default(autoincrement())
+  sku         String       @unique
+  codigo      String       @unique
+  nombre      String
+  descripcion String?
+  precio      Float
+  stock       Int          @default(0)
+  minStock    Int          @default(0)
+  estado      String       @default("disponible")
+  categoriaId Int
+  categoria   Categoria    @relation(fields: [categoriaId], references: [id])
+  proveedorId Int?
+  proveedor   Proveedor?   @relation(fields: [proveedorId], references: [id])
+  movements   Movimiento[]
+}
+
+model Movimiento {
+  id          Int          @id @default(autoincrement())
+  tipo        MovementType
+  cantidad    Int
+  fecha       DateTime     @default(now())
+  motivo      String?
+  productoId  Int
+  producto    Producto     @relation(fields: [productoId], references: [id])
+  usuarioId   Int
+  usuario     Usuario      @relation(fields: [usuarioId], references: [id])
+  proveedorId Int?
+  proveedor   Proveedor?   @relation(fields: [proveedorId], references: [id])
+}
