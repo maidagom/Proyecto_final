@@ -235,12 +235,13 @@ aplicacion.put("/productos/:id", authenticateToken, async (req, res) => {
 aplicacion.delete("/productos/:id", authenticateToken, async (req, res) => {
     const { id } = req.params;
     try {
-        await prisma.producto.delete({
-            where: { id: parseInt(id) }
-        });
+        await prisma.$transaction([
+            prisma.movimiento.deleteMany({ where: { productoId: parseInt(id) } }),
+            prisma.producto.delete({ where: { id: parseInt(id) } })
+        ]);
         res.status(204).send();
     } catch (error) {
-        res.status(400).send({ error: "No se puede eliminar el producto (puede tener movimientos asociados)" });
+        res.status(400).send({ error: "No se pudo eliminar el producto." });
     }
 });
 
